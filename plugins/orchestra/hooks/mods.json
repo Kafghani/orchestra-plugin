@@ -1,1 +1,1 @@
-{"modules": ["./mod/orchestra.ts"]}
+{"hooks": {}, "modules": ["./mod/orchestra.ts"]}

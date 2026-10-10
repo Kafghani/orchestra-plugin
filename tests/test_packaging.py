@@ -164,7 +164,7 @@ class NativeTests(unittest.TestCase):
         claude = json.loads((PLUGIN / '.claude-plugin/plugin.json').read_text())
         self.assertEqual(claude['hooks'], ['./hooks/claude.json', './hooks/mods.json'])
         self.assertEqual(claude['types'], './types/index.d.ts')
-        self.assertEqual(json.loads((PLUGIN / 'hooks/mods.json').read_text()), {'modules': ['./mod/orchestra.ts']})
+        self.assertEqual(json.loads((PLUGIN / 'hooks/mods.json').read_text()), {'hooks': {}, 'modules': ['./mod/orchestra.ts']})
         for name in ['hooks/mod/orchestra.ts', 'hooks/mod/marker.ts', 'types/index.d.ts']:
             self.assertTrue((PLUGIN / name).is_file(), name)
 

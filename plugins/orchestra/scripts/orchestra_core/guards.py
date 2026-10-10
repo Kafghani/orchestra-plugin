@@ -15,6 +15,17 @@ RULES = {key: value for key, value in json.loads(RULES_PATH.read_text(encoding='
          if not key.startswith('_')}  # Underscore keys (_doc) are documentation only.
 GUARD_DIGEST_FILES = ('config/guard-rules.json', 'scripts/orchestra_core/guards.py',
                       'scripts/orchestra_core/hooks.py', 'hooks/mod/guard.ts')
+_WINDOWS_EXECUTABLE = re.compile(r'\.(?:exe|cmd|bat|com)$', re.I)
+
+
+def _exe_name(word):
+    """Command name of an executable word: directory-less, and on Windows spellings (`C:\\...\\git.exe`,
+    `GIT.EXE`) the bare lowercase name, so `git.exe reset --hard` is judged exactly like `git reset --hard`."""
+    name = PurePosixPath(word.replace('\\', '/')).name
+    stripped = _WINDOWS_EXECUTABLE.sub('', name)
+    return stripped.lower() if stripped != name else name
+
+
 _SHELLS = frozenset(RULES['shells'])
 _SHELL_VALUE_FLAGS = frozenset(RULES['shell_value_flags'])
 _WRAPPER_VALUES = {name: set(values) for name, values in RULES['wrappers'].items()}
@@ -373,7 +384,7 @@ _RESERVED = frozenset(['{', '}', '!', 'if', 'then', 'elif', 'else', 'fi', 'while
 
 def _unwrap(words):
     while words:
-        name = PurePosixPath(words[0]).name
+        name = _exe_name(words[0])
         redirect = _REDIRECT.fullmatch(words[0])
         if words[0] == 'case':
             return []  # A case header (`case WORD in`) runs nothing; its patterns are not commands.
@@ -643,7 +654,7 @@ def _first_by_severity(decisions, base):
 
 
 def _classify_segment(words, depth):
-    name = PurePosixPath(words[0]).name
+    name = _exe_name(words[0])
     if name in _SHELLS:
         found = _shell_payload_rest(words)
         if found is None:
@@ -880,7 +891,7 @@ def _consumer_mode(segment, allow_eval=True):
     kept = _command_words(segment)
     if not kept:
         return None
-    if PurePosixPath(kept[0]).name in _SHELLS:
+    if _exe_name(kept[0]) in _SHELLS:
         return 'c' if _shell_payload(kept) is not None else 'script'
     if kept[0] in {'.', 'source'} or (allow_eval and kept[0] == 'eval'):
         return 'script'
@@ -1510,7 +1521,7 @@ def _raw_scan(text, depth):
             continue
         if not words:
             continue
-        name = PurePosixPath(words[0]).name
+        name = _exe_name(words[0])
         if not (name == 'eval' or (name in _SHELLS and _shell_payload_rest(words) is not None)):
             continue
         for raw in raws:
@@ -1767,7 +1778,7 @@ def _removed_reading(full, kept, whole):
     words = _unwrap([word for word, raw in zip(full, kept) if not _PURE_SUB.fullmatch(raw)])
     if not words or not whole or whole[0] != words[0]:
         return words
-    if words[0] == 'eval' or PurePosixPath(words[0]).name not in _SHELLS:
+    if words[0] == 'eval' or _exe_name(words[0]) not in _SHELLS:
         return whole if words[0] == 'eval' else words
     if full[len(full) - len(whole):] != whole:
         return whole  # Rewritten by a runner (watch, flock -c): no substitution word stands before options.
@@ -1852,7 +1863,7 @@ def _is_test_probe(module, rest):
 def _words_run_suite(words, depth):
     if not words or depth > 4:
         return False
-    exe, rest = PurePosixPath(words[0]).name, words[1:]
+    exe, rest = _exe_name(words[0]), words[1:]
     args = _positionals(rest)
     if exe in _SHELLS:
         payload = _shell_payload(words)
@@ -1929,7 +1940,7 @@ def _classify_command(command, _depth):
                 # A word made only of substitutions may expand to nothing (O33): the segment is classified
                 # with it removed and with it kept, and the stricter verdict wins (O34).
                 readings.insert(0, _extra(lambda: _removed_reading(full, kept, whole)))
-                if any(PurePosixPath(word).name in _WRAPPER_VALUES for word in full[:pure.index(True)]):
+                if any(_exe_name(word) in _WRAPPER_VALUES for word in full[:pure.index(True)]):
                     # After a wrapper it may also fill an option value and the next slot (two words).
                     readings.append(_extra(lambda: _unwrap([twin for word, sub in zip(full, pure) for twin in [word] * (1 + sub)])))
                     # Or fill an option value while a later one expands to nothing (FX4): the words after

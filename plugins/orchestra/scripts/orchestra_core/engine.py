@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import contextlib
 import copy
-import fcntl
+from . import portable
 import hashlib
 import json
 import os
@@ -145,6 +145,7 @@ def _section(text, title):
 
 def parse_ledger(text, now):
     """Parse the autonomy ledger (SPEC 12.2); every refusal names the field."""
+    text = text.replace('\r\n', '\n')  # A ledger saved with CRLF line endings (Windows editors) parses the same.
     fields = {}
     for name in ('goal', 'max_passes', 'max_stalls', 'deadline'):
         match = re.search(r'^' + name + r':[ \t]*(.*?)[ \t]*$', text, re.M)
@@ -384,12 +385,12 @@ class Engine:
             raise EngineError('Role or method instructions changed; start a new run')
         with (self.state_dir / 'state.lock').open('a+') as lock:
             if write or block or self.lock_wait is None:
-                fcntl.flock(lock, fcntl.LOCK_EX if write else fcntl.LOCK_SH)
+                portable.flock(lock, portable.LOCK_EX if write else portable.LOCK_SH)
             else:
                 end = time.monotonic() + self.lock_wait
                 while True:
                     try:
-                        fcntl.flock(lock, fcntl.LOCK_SH | fcntl.LOCK_NB)
+                        portable.flock(lock, portable.LOCK_SH | portable.LOCK_NB)
                         break
                     except OSError:
                         if time.monotonic() >= end:
@@ -422,11 +423,7 @@ class Engine:
                         out.flush()
                         os.fsync(out.fileno())
                     os.replace(name, self.state_path)
-                    directory = os.open(self.state_dir, os.O_RDONLY)
-                    try:
-                        os.fsync(directory)
-                    finally:
-                        os.close(directory)
+                    portable.fsync_dir(self.state_dir)
                 finally:
                     if os.path.exists(name):
                         os.unlink(name)
@@ -1627,7 +1624,7 @@ class Engine:
                     try:
                         code = process.wait(timeout=timeout or self.policy['gate_timeout_seconds'])
                     except subprocess.TimeoutExpired:
-                        os.killpg(process.pid, signal.SIGKILL)
+                        portable.kill_tree(process)
                         process.wait()
                         raise
             except subprocess.TimeoutExpired:

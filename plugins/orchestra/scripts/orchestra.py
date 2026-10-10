@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Portable Orchestra CLI. Each command prints a JSON receipt."""
 import argparse
-import fcntl
+from orchestra_core import portable
 import json
 import os
 from pathlib import Path
@@ -123,7 +123,7 @@ def parse_asks(text):
 
 def archive_inactive(state,engine):
     with (state/'state.lock').open('a') as stream:
-        fcntl.flock(stream,fcntl.LOCK_EX)
+        portable.flock(stream,portable.LOCK_EX)
         source = state/'state.json'
         if not source.exists():
             return
@@ -261,7 +261,7 @@ def execute(args):
                     code=process.wait(timeout=timeout)
                 except subprocess.TimeoutExpired:
                     try:
-                        os.killpg(process.pid,signal.SIGKILL)
+                        portable.kill_tree(process)
                     except ProcessLookupError:
                         pass
                     process.wait()

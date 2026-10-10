@@ -29,7 +29,7 @@ def main(argv):
             print('guard-fixtures.ts is stale: run hooks/mod/fixtures/sync.py', file=sys.stderr)
             return 1
         return 0
-    OUT.write_text(text, encoding='utf-8')
+    OUT.write_text(text, encoding='utf-8', newline='\n')
     return 0
 
 

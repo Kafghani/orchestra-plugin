@@ -6,10 +6,10 @@ The role count does not limit useful concurrency. Multiple instances of the same
 
 ## Install
 
-Prerequisites: Python 3.11 or later, Git, and Claude Code. Native checks used Claude Code 2.1.289. Windows is not supported by the POSIX locking core; use WSL. Other harnesses can use the portable CLI and contracts but need their own native adapter, which this repository does not ship.
+Prerequisites: Python 3.11 or later, Git, and Claude Code. Native checks used Claude Code 2.1.289. This fork runs natively on Windows (Python 3.11 or later from python.org, plus Git for Windows, whose `sh` runs the hooks); `scripts/orchestra_core/portable.py` supplies the locking and process-kill calls. Autonomous `relaunch` signal forwarding is POSIX-only and untested on Windows. Other harnesses can use the portable CLI and contracts but need their own native adapter, which this repository does not ship.
 
 ```sh
-claude plugin marketplace add Y-B-1/orchestra-plugin
+claude plugin marketplace add Kafghani/orchestra-plugin
 claude plugin install orchestra@orchestra-distribution
 ```
 
@@ -40,7 +40,7 @@ A run left active across the upgrade is different. Old role names are rejected, 
 ```sh
 claude plugin uninstall orchestra@orchestra-distribution
 claude plugin marketplace remove orchestra-distribution
-claude plugin marketplace add Y-B-1/orchestra-plugin
+claude plugin marketplace add Kafghani/orchestra-plugin
 claude plugin install orchestra@orchestra-distribution
 claude plugin list
 ```

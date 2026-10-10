@@ -10451,5 +10451,47 @@ export const CORPUS: CorpusCase[] = [
    "command": "git update-ref -m dated refs/heads/x HEAD"
   },
   "class": "allow"
+ },
+ {
+  "id": "deny-windows-1",
+  "input": {
+   "command": "git.exe reset --hard"
+  },
+  "class": "deny"
+ },
+ {
+  "id": "deny-windows-2",
+  "input": {
+   "command": "GIT.EXE reset --hard"
+  },
+  "class": "deny"
+ },
+ {
+  "id": "deny-windows-3",
+  "input": {
+   "command": "\"C:\\Program Files\\Git\\cmd\\git.exe\" reset --hard"
+  },
+  "class": "deny"
+ },
+ {
+  "id": "deny-windows-4",
+  "input": {
+   "command": "/c/Program\\ Files/Git/cmd/git.exe clean -fd"
+  },
+  "class": "deny"
+ },
+ {
+  "id": "deny-windows-5",
+  "input": {
+   "command": "git.exe push --force origin main"
+  },
+  "class": "deny"
+ },
+ {
+  "id": "allow-windows-1",
+  "input": {
+   "command": "git.exe status"
+  },
+  "class": "allow"
  }
 ];

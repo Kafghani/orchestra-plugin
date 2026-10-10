@@ -164,8 +164,11 @@ function isDigit(text: string): boolean {
 }
 
 function posixName(path: string): string {
-  const parts = path.split('/').filter((p) => p !== '' && p !== '.');
-  return parts.length ? parts[parts.length - 1]! : '';
+  const parts = path.replace(/\\/g, '/').split('/').filter((p) => p !== '' && p !== '.');
+  const name = parts.length ? parts[parts.length - 1]! : '';
+  // Windows spellings (`C:\...\git.exe`, `GIT.EXE`) judge like the bare lowercase name; keep in step with guards.py _exe_name.
+  const bare = name.replace(/\.(?:exe|cmd|bat|com)$/i, '');
+  return bare !== name ? bare.toLowerCase() : name;
 }
 
 function quote(text: string): string {

@@ -4,6 +4,12 @@ Release 2.0.0 is described in docs/RELEASE-NOTES-2.0.0.md.
 
 ## 2.5.1 — 2026-10-10
 
+- **Windows fork — Portability:** `orchestra_core/portable.py` replaces `fcntl.flock` (LockFileEx), `os.killpg` (`taskkill /T`) and directory `fsync` on Windows; POSIX behavior is unchanged.
+- **Windows fork — Hooks:** `run-hook.sh` forces `PYTHONUTF8=1` and finds `python`, `py` and the standard python.org install folders (the Microsoft Store stub shadows `python`).
+- **Windows fork — Ledger:** `parse_ledger` accepts CRLF line endings; before, a CRLF ledger failed with "deadline must be ISO 8601".
+- **Windows fork — Guards:** executable names are normalized (`git.exe`, `GIT.EXE`, `C:\...\git.exe`) in `guards.py` and `guard.ts`, so Windows spellings of denied commands are denied too. Six corpus cases cover it.
+- **Windows fork — Manifest:** `hooks/mods.json` carries an empty `hooks` object so Claude Code 2.1.224, which requires the key, loads the plugin.
+- **Windows fork — Tests:** the suite runs on Windows; the deleted-working-directory and relaunch-signal tests are skipped there. Run with `PYTHONUTF8=1`.
 - **Engine:** a run state whose session carries `size` never loads under the 2.3 policy hash. Before, `binds()` refused only a session with `items`. The two task-size checks share one constant, `CARD_SIZES`.
 - **Examples:** `examples/global-CLAUDE.md` (a user-level `~/.claude/CLAUDE.md` that routes through Orchestra) and `examples/project-AGENTS.md` (a project charter whose standing orders Orchestra pastes into every brief).
 

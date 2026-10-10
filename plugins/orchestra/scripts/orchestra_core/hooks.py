@@ -6,7 +6,7 @@ https://code.claude.com/docs/en/hooks (checked 2026-09-30).
 import argparse
 from dataclasses import dataclass
 from datetime import datetime, timezone
-import fcntl
+from . import portable
 import json
 import os
 from pathlib import Path
@@ -277,7 +277,7 @@ def _wait_for_lock(lock_path, started):
     with open(lock_path, 'a+') as lock:
         while True:
             try:
-                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                portable.flock(lock, portable.LOCK_EX | portable.LOCK_NB)
                 return True  # Closing the file releases it
             except OSError:
                 if time.monotonic() >= end:
@@ -448,7 +448,7 @@ def _remote_tip_matches(repo, remote, branch):
         out, _ = proc.communicate(timeout=3)
     except subprocess.TimeoutExpired:
         try:
-            os.killpg(proc.pid, 9)
+            portable.kill_tree(proc)
         except OSError:
             pass
         proc.communicate()

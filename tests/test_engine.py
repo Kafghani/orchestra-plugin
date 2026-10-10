@@ -49,7 +49,7 @@ def done(text='done', checks=None, criteria=None):
 
 class EngineFixture(unittest.TestCase):
     def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory(prefix='engine with spaces ')
+        self.tmp = tempfile.TemporaryDirectory(prefix='engine with spaces ', ignore_cleanup_errors=os.name == 'nt')
         self.root = pathlib.Path(self.tmp.name)
         self.repo = self.root / 'repo'
         self.repo.mkdir()
@@ -945,7 +945,7 @@ class HarnessSessionTests(EngineFixture):
 
     def test_end_writes_wait_for_a_lock_held_past_lock_wait(self):
         """Interrupt and SessionEnd records survive a busy lock: they wait instead of raising StateBusy."""
-        import fcntl
+        from orchestra_core import portable as fcntl
         import threading
         for method, args, reason in [('interrupt_active', (), 'interrupted'), ('end_harness_session', ('S',), 'ended')]:
             with self.subTest(method=method):
@@ -3708,7 +3708,7 @@ class RunBriefTests(AutonomyFixture, HoldFixture):
             self.engine.status()
 
     def test_lock_wait_raises_state_busy_and_default_blocks(self):
-        import fcntl
+        from orchestra_core import portable as fcntl
         from orchestra_core.engine import StateBusy
         busy = Engine(self.state, self.repo, lock_wait=0.3, clock=lambda: self.now[0])
         self.engine.status()  # creates state.lock
