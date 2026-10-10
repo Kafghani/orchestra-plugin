@@ -1,0 +1,5 @@
+# Hooks run under sh and guard digests hash file bytes: always check out LF, even with core.autocrlf=true on Windows.
+* text=auto eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.png binary
